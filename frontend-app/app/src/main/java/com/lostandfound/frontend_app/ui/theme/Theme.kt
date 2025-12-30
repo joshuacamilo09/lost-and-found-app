@@ -35,9 +35,9 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun FrontendappTheme(
+    // Agora aceita um estado manual
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false, // Desativei por padrão para as suas cores personalizadas brilharem
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -45,7 +45,6 @@ fun FrontendappTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }

@@ -27,7 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.lostandfound.frontend_app.data.remote.dto.ItemStatus
+import com.lostandfound.frontend_app.data.remote.dto.item.ItemStatus
 import com.lostandfound.frontend_app.ui.viewmodel.CreateItemViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)

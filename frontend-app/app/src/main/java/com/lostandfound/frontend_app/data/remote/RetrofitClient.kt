@@ -11,7 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
     // Se for telemóvel real, mudar para o IP da rede (ex: 192.168.1.XX)
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    private const val BASE_URL = "http://192.168.1.4:8080/"
 
     fun getApiService(context: Context): ApiService {
         val tokenManager = TokenManager(context)

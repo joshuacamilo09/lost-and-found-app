@@ -1,4 +1,4 @@
-package com.lostandfound.frontend_app.data.remote.dto
+package com.lostandfound.frontend_app.data.remote.dto.item
 
 enum class ItemStatus { LOST, FOUND }
 

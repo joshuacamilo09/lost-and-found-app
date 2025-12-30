@@ -3,7 +3,7 @@ package com.lostandfound.frontend_app.ui.viewmodel
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lostandfound.frontend_app.data.remote.dto.LoginRequestDTO
+import com.lostandfound.frontend_app.data.remote.dto.auth.LoginRequestDTO
 import com.lostandfound.frontend_app.data.repository.AuthRepository
 import com.lostandfound.frontend_app.util.TokenManager
 import kotlinx.coroutines.launch

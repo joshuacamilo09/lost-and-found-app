@@ -3,7 +3,6 @@ package com.lostandfound.model;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Objects;
@@ -29,9 +28,13 @@ public class User {
     @Column(length = 100)
     private String fullName;
 
+    @Column(length = 100)
+    private String location; // Corrigido para minúsculo para seguir o padrão
+
     @Column(length = 20)
     private String phoneNumber;
 
+    @Column
     private String profileImageUrl;
 
     @Column(nullable = false)
@@ -44,33 +47,27 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    // Relacionamentos
+    // --- RELACIONAMENTOS (Faltavam estes para o getItems() funcionar) ---
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Item> items = new HashSet<>();
 
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Message> sentMessages = new HashSet<>();
+    // --- CONSTRUTORES ---
+    public User() {}
 
-    @ManyToMany(mappedBy = "participants", fetch = FetchType.LAZY)
-    private Set<Conversation> conversations = new HashSet<>();
-
-    // --- Construtores ---
-    public User() {
-    }
-
-    public User(Long id, String username, String email, String password, String fullName, 
+    public User(Long id, String username, String email, String password, String fullName, String location, 
                 String phoneNumber, String profileImageUrl, Boolean active) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
         this.fullName = fullName;
+        this.location = location;
         this.phoneNumber = phoneNumber;
         this.profileImageUrl = profileImageUrl;
         this.active = active;
     }
 
-    // --- Getters e Setters ---
+    // --- GETTERS E SETTERS ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -86,31 +83,27 @@ public class User {
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
 
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
     public String getProfileImageUrl() { return profileImageUrl; }
     public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
 
+    // Faltava este para o AuthService e UserService:
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-
+    // Faltava este para o Controller (toDTO):
     public Set<Item> getItems() { return items; }
     public void setItems(Set<Item> items) { this.items = items; }
 
-    public Set<Message> getSentMessages() { return sentMessages; }
-    public void setSentMessages(Set<Message> sentMessages) { this.sentMessages = sentMessages; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 
-    public Set<Conversation> getConversations() { return conversations; }
-    public void setConversations(Set<Conversation> conversations) { this.conversations = conversations; }
-
-    // --- Métodos Importantes (Baseados no ID para JPA) ---
+    // --- EQUALS & HASHCODE ---
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

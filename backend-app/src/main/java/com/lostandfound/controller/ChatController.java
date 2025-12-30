@@ -3,22 +3,30 @@ package com.lostandfound.controller;
 import com.lostandfound.dto.chat.conversaton.ConversationResponse;
 import com.lostandfound.dto.chat.message.MessageRequest;
 import com.lostandfound.dto.chat.message.MessageResponse;
+import com.lostandfound.dto.conversation.ConversationSummaryDTO; 
 import com.lostandfound.service.chat.ChatService;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/chat")
+@CrossOrigin(origins = "*")
 public class ChatController {
 
     private final ChatService chatService;
 
     public ChatController(ChatService chatService) {
         this.chatService = chatService;
+    }
+
+    // ========================= LIST CONVERSATIONS (INBOX) =========================
+    // Alterado para retornar o Summary, que contém os dados reais para a lista do Android
+    @GetMapping("/conversations")
+    public ResponseEntity<List<ConversationSummaryDTO>> getMyConversations() {
+        List<ConversationSummaryDTO> conversations = chatService.getMyConversationsSummary();
+        return ResponseEntity.ok(conversations);
     }
 
     // ========================= CREATE CONVERSATION =========================
@@ -39,14 +47,7 @@ public class ChatController {
         return ResponseEntity.status(HttpStatus.CREATED).body(message);
     }
 
-    // ========================= LIST CONVERSATIONS =========================
-    @GetMapping("/conversations")
-    public ResponseEntity<List<ConversationResponse>> getMyConversations() {
-        List<ConversationResponse> conversations = chatService.getMyConversations();
-        return ResponseEntity.ok(conversations);
-    }
-
-    // ========================= LIST MESSAGES =========================
+    // ========================= LIST MESSAGES (DENTRO DO CHAT) =========================
     @GetMapping("/conversations/{conversationId}/messages")
     public ResponseEntity<List<MessageResponse>> getMessages(
             @PathVariable Long conversationId) {

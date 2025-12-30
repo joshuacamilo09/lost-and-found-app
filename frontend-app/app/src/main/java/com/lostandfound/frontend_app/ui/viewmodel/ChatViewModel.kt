@@ -4,24 +4,47 @@ import android.util.Log
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lostandfound.frontend_app.data.remote.dto.ChatResponseDTO
-import com.lostandfound.frontend_app.data.remote.dto.MessageResponseDTO
+import com.lostandfound.frontend_app.data.remote.dto.message.MessageResponseDTO
+import com.lostandfound.frontend_app.data.remote.dto.conversation.ConversationSummaryDTO // Import novo
 import com.lostandfound.frontend_app.data.repository.ItemRepository
 import kotlinx.coroutines.launch
-import retrofit2.Response
 
 class ChatViewModel(private val repository: ItemRepository) : ViewModel() {
 
+    // --- Estado para a Lista de Conversas (Inbox) ---
+    var conversations by mutableStateOf<List<ConversationSummaryDTO>>(emptyList())
+    var isLoadingConversations by mutableStateOf(false)
+
+    // --- Estado para a Conversa Individual ---
     var messages by mutableStateOf<List<MessageResponseDTO>>(emptyList())
     var chatId by mutableStateOf<Long?>(null)
     var newMessageText by mutableStateOf("")
-
-    // Variáveis que agora serão preenchidas via busca no repositório
     var recipientName by mutableStateOf("Carregando...")
     var itemTitle by mutableStateOf("Item...")
 
     private var userToken: String = ""
 
+    // 1. CARREGAR TODAS AS CONVERSAS (Para a tua tela de Inbox)
+    fun loadMyConversations(token: String) {
+        this.userToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
+        isLoadingConversations = true
+
+        viewModelScope.launch {
+            try {
+                val response = repository.getMyConversations(userToken)
+                if (response.isSuccessful) {
+                    conversations = response.body() ?: emptyList()
+                    Log.d("CHAT_DEBUG", "Conversas carregadas: ${conversations.size}")
+                }
+            } catch (e: Exception) {
+                Log.e("CHAT_DEBUG", "Erro ao carregar lista de conversas: ${e.message}")
+            } finally {
+                isLoadingConversations = false
+            }
+        }
+    }
+
+    // 2. INICIAR UM CHAT ESPECÍFICO (Melhorado com os nomes dos métodos do Repo)
     fun initChat(itemId: Long, recipientId: Long, token: String) {
         this.userToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
 
@@ -29,8 +52,7 @@ class ChatViewModel(private val repository: ItemRepository) : ViewModel() {
             try {
                 if (itemId == 0L || recipientId == 0L) return@launch
 
-                // 1. Buscamos as informações do Item para preencher a TopBar
-                // Assume-se que seu repositório tem uma função getItemById que retorna Response<ItemResponseDTO>
+                // Buscamos info do Item para a TopBar
                 val itemResponse = repository.getItemById(itemId)
                 if (itemResponse.isSuccessful) {
                     val itemData = itemResponse.body()
@@ -38,16 +60,11 @@ class ChatViewModel(private val repository: ItemRepository) : ViewModel() {
                     recipientName = itemData?.username ?: "Usuário"
                 }
 
-                // 2. Iniciamos/Criamos a conversa
-                val response: Response<ChatResponseDTO> = repository.createConversation(
-                    token = userToken,
-                    itemId = itemId,
-                    otherUserId = recipientId
-                )
+                // Criar ou recuperar conversa
+                val response = repository.createConversation(userToken, itemId, recipientId)
 
                 if (response.isSuccessful) {
                     chatId = response.body()?.id
-                    Log.d("CHAT_DEBUG", "Chat iniciado: $chatId")
                     loadMessages()
                 }
             } catch (e: Exception) {
@@ -56,11 +73,12 @@ class ChatViewModel(private val repository: ItemRepository) : ViewModel() {
         }
     }
 
+    // 3. CARREGAR MENSAGENS
     fun loadMessages() {
         val currentId = chatId ?: return
         viewModelScope.launch {
             try {
-                val response: Response<List<MessageResponseDTO>> = repository.getChatMessages(userToken, currentId)
+                val response = repository.getChatMessages(userToken, currentId)
                 if (response.isSuccessful) {
                     messages = response.body() ?: emptyList()
                 }
@@ -70,6 +88,7 @@ class ChatViewModel(private val repository: ItemRepository) : ViewModel() {
         }
     }
 
+    // 4. ENVIAR MENSAGEM
     fun onSendClick() {
         val currentChatId = chatId ?: return
         if (newMessageText.isBlank()) return
@@ -79,10 +98,10 @@ class ChatViewModel(private val repository: ItemRepository) : ViewModel() {
                 val response = repository.sendMessage(userToken, currentChatId, newMessageText)
                 if (response.isSuccessful) {
                     newMessageText = ""
-                    loadMessages()
+                    loadMessages() // Recarrega para mostrar a nova mensagem
                 }
             } catch (e: Exception) {
-                Log.e("CHAT_DEBUG", "Falha de Rede: ${e.message}")
+                Log.e("CHAT_DEBUG", "Falha ao enviar: ${e.message}")
             }
         }
     }

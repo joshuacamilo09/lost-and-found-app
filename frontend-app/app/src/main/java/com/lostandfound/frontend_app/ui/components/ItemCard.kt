@@ -15,8 +15,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.lostandfound.frontend_app.data.remote.dto.ItemResponseDTO
-import com.lostandfound.frontend_app.data.remote.dto.ItemStatus
+import com.lostandfound.frontend_app.data.remote.dto.item.ItemResponseDTO
+import com.lostandfound.frontend_app.data.remote.dto.item.ItemStatus
 
 @Composable
 fun NewItemCard(

@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -36,25 +37,46 @@ import com.lostandfound.frontend_app.ui.viewmodel.DashboardViewModel
 fun DashboardScreen(
     viewModel: DashboardViewModel,
     onAddItemClick: () -> Unit,
-    onItemClick: (Long) -> Unit
+    onItemClick: (Long) -> Unit,
+    onChatIconClick: () -> Unit,
+    onProfileClick: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    var selectedFilter by remember { mutableStateOf("Todos") }
+
+    val filteredItems = viewModel.items.filter { item ->
+        val matchesSearch = item.title.contains(searchQuery, ignoreCase = true)
+        val matchesFilter = when (selectedFilter) {
+            "Perdidos" -> item.status.toString() == "LOST"
+            "Encontrados" -> item.status.toString() == "FOUND"
+            else -> true
+        }
+        matchesSearch && matchesFilter
+    }
 
     Scaffold(
         topBar = {
             Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
                 CenterAlignedTopAppBar(
+                    navigationIcon = {
+                        IconButton(onClick = onProfileClick) {
+                            Icon(Icons.Default.Person, contentDescription = "Perfil")
+                        }
+                    },
                     title = {
-                        Text("Lost & Found", style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.primary)
+                        Text(
+                            "Lost & Found",
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     },
                     actions = {
-                        IconButton(onClick = { /* Navegar para chats */ }) {
+                        IconButton(onClick = onChatIconClick) {
                             Icon(Icons.Default.ChatBubbleOutline, contentDescription = "Chats")
                         }
                     }
                 )
 
-                // CORREÇÃO AQUI: OutlinedTextFieldDefaults.colors
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -76,20 +98,32 @@ fun DashboardScreen(
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    FilterChip(selected = true, onClick = {}, label = { Text("Todos") })
-                    FilterChip(selected = false, onClick = {}, label = { Text("Perdidos") })
-                    FilterChip(selected = false, onClick = {}, label = { Text("Encontrados") })
+                    FilterChip(
+                        selected = selectedFilter == "Todos",
+                        onClick = { selectedFilter = "Todos" },
+                        label = { Text("Todos") }
+                    )
+                    FilterChip(
+                        selected = selectedFilter == "Perdidos",
+                        onClick = { selectedFilter = "Perdidos" },
+                        label = { Text("Perdidos") }
+                    )
+                    FilterChip(
+                        selected = selectedFilter == "Encontrados",
+                        onClick = { selectedFilter = "Encontrados" },
+                        label = { Text("Encontrados") }
+                    )
                 }
             }
         },
         floatingActionButton = {
-            LargeFloatingActionButton(
+            FloatingActionButton(
                 onClick = onAddItemClick,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Adicionar Item", modifier = Modifier.size(30.dp))
+                Icon(Icons.Default.Add, contentDescription = "Adicionar Item", modifier = Modifier.size(24.dp))
             }
         }
     ) { padding ->
@@ -107,7 +141,7 @@ fun DashboardScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(viewModel.items) { item ->
+            items(filteredItems) { item ->
                 NewItemCard(item = item, onClick = { onItemClick(item.id) })
             }
         }

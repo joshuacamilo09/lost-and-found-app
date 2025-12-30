@@ -18,7 +18,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.lostandfound.frontend_app.data.remote.dto.ItemStatus
+import com.lostandfound.frontend_app.data.remote.dto.item.ItemStatus
 import com.lostandfound.frontend_app.ui.viewmodel.ItemDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -145,18 +145,6 @@ fun ItemDetailScreen(
                             Icon(Icons.Default.ChatBubbleOutline, null)
                             Spacer(Modifier.width(8.dp))
                             Text("Iniciar Conversa")
-                        }
-
-                        // Botão Enviar Email (Branco com borda)
-                        OutlinedButton(
-                            onClick = { /* Lógica de Email */ },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, Color.LightGray)
-                        ) {
-                            Icon(Icons.Outlined.Email, null, tint = Color.Black)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Enviar Email", color = Color.Black)
                         }
                     }
 

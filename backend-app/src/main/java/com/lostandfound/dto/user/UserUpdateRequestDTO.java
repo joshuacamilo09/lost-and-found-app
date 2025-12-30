@@ -7,13 +7,15 @@ public class UserUpdateRequestDTO {
     private String fullName;
     private String phoneNumber;
     private String profileImageUrl;
+    private String Location;
 
     public UserUpdateRequestDTO() {}
 
-    public UserUpdateRequestDTO(String fullName, String phoneNumber, String profileImageUrl) {
+    public UserUpdateRequestDTO(String fullName, String phoneNumber, String profileImageUrl, String Location) {
         this.fullName = fullName;
         this.phoneNumber = phoneNumber;
         this.profileImageUrl = profileImageUrl;
+        this.Location = Location;
     }
 
     // --- Getters ---
@@ -43,8 +45,19 @@ public class UserUpdateRequestDTO {
     }
 
     public void updateUserData(User user, UserUpdateRequestDTO dto) {
-    if (dto.getFullName() != null) user.setFullName(dto.getFullName());
-    if (dto.getPhoneNumber() != null) user.setPhoneNumber(dto.getPhoneNumber());
-    if (dto.getProfileImageUrl() != null) user.setProfileImageUrl(dto.getProfileImageUrl());
-}
+        if (dto.getFullName() != null)
+            user.setFullName(dto.getFullName());
+        if (dto.getPhoneNumber() != null)
+            user.setPhoneNumber(dto.getPhoneNumber());
+        if (dto.getProfileImageUrl() != null)
+            user.setProfileImageUrl(dto.getProfileImageUrl());
+    }
+
+    public String getLocation() {
+        return Location;
+    }
+
+    public void setLocation(String Location) {
+        this.Location = Location;
+    }
 }

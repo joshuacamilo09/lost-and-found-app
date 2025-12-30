@@ -7,8 +7,8 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lostandfound.frontend_app.data.remote.dto.ItemRequestDTO
-import com.lostandfound.frontend_app.data.remote.dto.ItemStatus
+import com.lostandfound.frontend_app.data.remote.dto.item.ItemRequestDTO
+import com.lostandfound.frontend_app.data.remote.dto.item.ItemStatus
 import com.lostandfound.frontend_app.data.repository.ItemRepository
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull

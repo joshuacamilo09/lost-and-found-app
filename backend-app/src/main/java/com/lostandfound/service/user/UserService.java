@@ -28,22 +28,27 @@ public class UserService {
     }
 
     // Atualizar perfil do utilizador autenticado
-    public User updateCurrentUser(User updates) {
-        User currentUser = getCurrentUser();
+    // Atualizar perfil do utilizador autenticado
+public User updateCurrentUser(User updates) {
+    User currentUser = getCurrentUser();
 
-        // Atualizar apenas campos permitidos
-        if (updates.getFullName() != null) {
-            currentUser.setFullName(updates.getFullName());
-        }
-        if (updates.getPhoneNumber() != null) {
-            currentUser.setPhoneNumber(updates.getPhoneNumber());
-        }
-        if (updates.getProfileImageUrl() != null) {
-            currentUser.setProfileImageUrl(updates.getProfileImageUrl());
-        }
-
-        return userRepository.save(currentUser);
+    // Atualizar apenas campos permitidos
+    if (updates.getFullName() != null) {
+        currentUser.setFullName(updates.getFullName());
     }
+    if (updates.getPhoneNumber() != null) {
+        currentUser.setPhoneNumber(updates.getPhoneNumber());
+    }
+    // ESTA LINHA ESTAVA A FALTAR:
+    if (updates.getLocation() != null) {
+        currentUser.setLocation(updates.getLocation());
+    }
+    if (updates.getProfileImageUrl() != null) {
+        currentUser.setProfileImageUrl(updates.getProfileImageUrl());
+    }
+
+    return userRepository.save(currentUser);
+}
 
     // Desativar conta do utilizador autenticado
     public void deactivateCurrentUser() {

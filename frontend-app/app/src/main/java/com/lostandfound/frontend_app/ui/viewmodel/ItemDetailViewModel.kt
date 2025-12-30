@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lostandfound.frontend_app.data.repository.ItemRepository
 import kotlinx.coroutines.launch
-import com.lostandfound.frontend_app.data.remote.dto.ItemResponseDTO
+import com.lostandfound.frontend_app.data.remote.dto.item.ItemResponseDTO
 class ItemDetailViewModel(private val repository: ItemRepository) : ViewModel() {
 
     var item by mutableStateOf<ItemResponseDTO?>(null)

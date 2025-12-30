@@ -63,6 +63,10 @@ public class AuthService {
         user.setEmail(dto.email());
         user.setPassword(passwordEncoder.encode(dto.password()));
         user.setActive(true);
+        user.setPhoneNumber(dto.phoneNumber());
+        user.setLocation(dto.location());
+        user.setFullName(dto.fullName());
+        user.setActive(true);
 
         // Guardar na base de dados
         userRepository.save(user);

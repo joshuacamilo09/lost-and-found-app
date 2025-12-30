@@ -3,7 +3,7 @@ package com.lostandfound.frontend_app.ui.viewmodel
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lostandfound.frontend_app.data.remote.dto.ItemResponseDTO
+import com.lostandfound.frontend_app.data.remote.dto.item.ItemResponseDTO
 import com.lostandfound.frontend_app.data.repository.ItemRepository
 import kotlinx.coroutines.launch
 
