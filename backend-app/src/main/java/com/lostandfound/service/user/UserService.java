@@ -27,19 +27,15 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Utilizador autenticado não encontrado"));
     }
 
-    // Atualizar perfil do utilizador autenticado
-    // Atualizar perfil do utilizador autenticado
 public User updateCurrentUser(User updates) {
     User currentUser = getCurrentUser();
 
-    // Atualizar apenas campos permitidos
     if (updates.getFullName() != null) {
         currentUser.setFullName(updates.getFullName());
     }
     if (updates.getPhoneNumber() != null) {
         currentUser.setPhoneNumber(updates.getPhoneNumber());
     }
-    // ESTA LINHA ESTAVA A FALTAR:
     if (updates.getLocation() != null) {
         currentUser.setLocation(updates.getLocation());
     }
