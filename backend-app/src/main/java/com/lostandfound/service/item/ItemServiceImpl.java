@@ -155,25 +155,77 @@ public List<ItemResponseDTO> getItemsByCategory(String categoryNameString) {
 
     // ========================= DELETE =========================
     @Override
-    public void deleteItem(Long itemId) {
-        User user = getAuthenticatedUser();
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item não encontrado"));
+public void deleteItem(Long itemId) {
+    User user = getAuthenticatedUser();
+    Item item = itemRepository.findById(itemId)
+            .orElseThrow(() -> new RuntimeException("Item não encontrado"));
 
-        if (!item.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Não tens permissão para apagar este item");
-        }
-
-        itemRepository.delete(item);
+    // Segurança: Verifica se é o dono
+    if (!item.getUser().getId().equals(user.getId())) {
+        throw new RuntimeException("Não tens permissão para apagar este item");
     }
+
+    // Opcional: Se houver conversas, apaga-as primeiro ou desativa-as
+    List<Conversation> conversations = conversationRepository.findByItemId(item.getId());
+    if (!conversations.isEmpty()) {
+        conversationRepository.deleteAll(conversations);
+    }
+
+    itemRepository.delete(item);
+}
 
     // ========================= HELPERS =========================
     private User getAuthenticatedUser() {
-    String username = SecurityContextHolder.getContext()
-        .getAuthentication()
-        .getName();
-    return userRepository.findByUsername(username)
-        .orElseThrow(() -> new RuntimeException("Utilizador autenticado não encontrado"));
+        String username = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Utilizador autenticado não encontrado"));
+    }
+    
+    @Override
+public ItemResponseDTO updateItem(Long id, ItemRequestDTO dto, MultipartFile image) {
+    User user = getAuthenticatedUser();
+    Item item = itemRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Item não encontrado"));
+
+    // Segurança: Apenas o dono pode editar
+    if (!item.getUser().getId().equals(user.getId())) {
+        throw new RuntimeException("Não tens permissão para editar este item");
+    }
+
+    // Atualiza os campos básicos
+    item.setTitle(dto.getTitle());
+    item.setDescription(dto.getDescription());
+    item.setStatus(dto.getStatus());
+    item.setLocationName(dto.getLocationName());
+    item.setItemDateTime(dto.getItemDateTime());
+
+    // Atualiza Categoria
+    Category category = categoryRepository.findByName(dto.getCategoryName())
+            .orElseGet(() -> {
+                Category newCat = new Category();
+                newCat.setName(dto.getCategoryName());
+                return categoryRepository.save(newCat);
+            });
+    item.setCategory(category);
+
+   if (image != null && !image.isEmpty()) {
+        try {
+            // FIX: Usar as mesmas credenciais do createItem
+            Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+                "cloud_name", "dgvgm30cm",
+                "api_key", "398823687392838",
+                "api_secret", "xBWDA4gxTggtjV8S3iNzXbrol1g"
+            ));
+            Map uploadResult = cloudinary.uploader().upload(image.getBytes(), ObjectUtils.emptyMap());
+            item.setImageUrl(uploadResult.get("url").toString());
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao carregar nova imagem: " + e.getMessage());
+        }
+    }
+
+    return mapToResponse(itemRepository.save(item));
 }
 
     private ItemResponseDTO mapToResponse(Item item) {

@@ -29,7 +29,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Inicialização das dependências
         val apiService = RetrofitClient.getApiService(this)
         val authRepository = AuthRepository(apiService)
         val itemRepository = ItemRepository(apiService)
@@ -51,7 +50,6 @@ class MainActivity : ComponentActivity() {
                     startDestination = Screen.Login.route
                 ) {
 
-                    // 1. Rota de Perfil
                     composable(Screen.Profile.route) {
                         ProfileScreen(
                             viewModel = profileViewModel,
@@ -68,7 +66,6 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // 2. Rota de Edição de Perfil
                     composable(Screen.EditProfile.route) {
                         EditProfileScreen(
                             viewModel = profileViewModel,
@@ -76,7 +73,6 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // 3. Rota de Login
                     composable(Screen.Login.route) {
                         val loginViewModel: LoginViewModel = viewModel(
                             factory = object : ViewModelProvider.Factory {
@@ -99,7 +95,6 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    // 4. Rota de Registro
                     composable(Screen.Register.route) {
                         val registerViewModel: RegisterViewModel = viewModel(
                             factory = object : ViewModelProvider.Factory {
@@ -122,7 +117,6 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    // 5. Dashboard
                     composable(Screen.Dashboard.route) {
                         val dashboardViewModel: DashboardViewModel = viewModel(
                             factory = object : ViewModelProvider.Factory {
@@ -150,7 +144,6 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // 6. Lista de Mensagens (Inbox)
                     composable(Screen.MessagesList.route) {
                         val token = tokenManager.getToken() ?: ""
                         val chatViewModel: ChatViewModel = viewModel(
@@ -170,16 +163,16 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // 7. Detalhe do Item
                     composable(
                         route = "item_detail/{itemId}",
                         arguments = listOf(navArgument("itemId") { type = NavType.LongType })
                     ) { backStackEntry ->
                         val itemId = backStackEntry.arguments?.getLong("itemId") ?: 0L
+
                         val detailViewModel: ItemDetailViewModel = viewModel(
                             factory = object : ViewModelProvider.Factory {
                                 override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                                    ItemDetailViewModel(itemRepository) as T
+                                    ItemDetailViewModel(itemRepository, tokenManager) as T
                             }
                         )
 
@@ -187,18 +180,19 @@ class MainActivity : ComponentActivity() {
                             itemId = itemId,
                             viewModel = detailViewModel,
                             onBack = { navController.popBackStack() },
+                            onEditClick = { id -> navController.navigate("edit_item/$id") },
                             onContactClick = { userId ->
                                 navController.navigate("chat/$itemId/$userId")
                             }
                         )
                     }
 
-                    // 8. Criar Item
+                    // --- ROTA CRIAR ITEM (CORRIGIDA) ---
                     composable(Screen.CreateItem.route) {
                         val createItemViewModel: CreateItemViewModel = viewModel(
                             factory = object : ViewModelProvider.Factory {
                                 override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                                    CreateItemViewModel(itemRepository) as T
+                                    CreateItemViewModel(itemRepository, tokenManager) as T // Adicionado tokenManager aqui
                             }
                         )
 
@@ -209,7 +203,30 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // 9. Chat Individual
+                    // --- ROTA EDITAR ITEM (CORRIGIDA) ---
+                    composable(
+                        route = "edit_item/{itemId}",
+                        arguments = listOf(navArgument("itemId") { type = NavType.LongType })
+                    ) { backStackEntry ->
+                        val itemId = backStackEntry.arguments?.getLong("itemId") ?: 0L
+                        val createItemViewModel: CreateItemViewModel = viewModel(
+                            factory = object : ViewModelProvider.Factory {
+                                override fun <T : ViewModel> create(modelClass: Class<T>): T =
+                                    CreateItemViewModel(itemRepository, tokenManager) as T // Adicionado tokenManager aqui
+                            }
+                        )
+
+                        LaunchedEffect(itemId) {
+                            createItemViewModel.loadItemForEdit(itemId)
+                        }
+
+                        CreateItemScreen(
+                            viewModel = createItemViewModel,
+                            onItemCreated = { navController.popBackStack() },
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
                     composable(
                         route = "chat/{itemId}/{recipientId}",
                         arguments = listOf(

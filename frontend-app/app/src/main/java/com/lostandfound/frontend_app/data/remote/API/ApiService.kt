@@ -9,6 +9,7 @@ import com.lostandfound.frontend_app.data.remote.dto.conversation.ConversationSu
 import com.lostandfound.frontend_app.data.remote.dto.user.UserResponseDTO
 import com.lostandfound.frontend_app.data.remote.dto.user.UserUpdateRequestDTO
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -78,4 +79,21 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body request: UserUpdateRequestDTO
     ): Response<UserResponseDTO>
+
+    @Multipart
+    @PUT("api/items/{id}")
+    suspend fun updateItem(
+        @Header("Authorization") token: String, // Adicionado para segurança
+        @Path("id") id: Long,
+        @Part("item") item: RequestBody,
+        @Part image: MultipartBody.Part?
+    ): Response<ItemResponseDTO>
+
+    // ELIMINAR ITEM
+    @DELETE("api/items/{id}")
+    suspend fun deleteItem(id1: String, @Path("id") id: Long): Response<Unit>
+
+    // MARCAR COMO RESOLVIDO (O que já tens no Back-end)
+    @PATCH("api/items/{id}/resolve")
+    suspend fun markAsResolved(@Path("id") id: Long): Response<ItemResponseDTO>
 }

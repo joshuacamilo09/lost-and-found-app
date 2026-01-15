@@ -1,4 +1,3 @@
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -6,7 +5,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +25,7 @@ fun ItemDetailScreen(
     itemId: Long,
     viewModel: ItemDetailViewModel,
     onBack: () -> Unit,
+    onEditClick: (Long) -> Unit,
     onContactClick: (Long) -> Unit
 ) {
     LaunchedEffect(itemId) {
@@ -40,6 +39,19 @@ fun ItemDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
+                    }
+                },
+                actions = {
+                    // SÓ MOSTRA EDITAR/APAGAR SE O ITEM PERTENCER AO USER LOGADO
+                    if (viewModel.item?.userId == viewModel.currentUserId) {
+                        IconButton(onClick = { onEditClick(itemId) }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Editar")
+                        }
+                        IconButton(onClick = {
+                            viewModel.deleteItem(itemId) { onBack() }
+                        }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red)
+                        }
                     }
                 }
             )
@@ -56,7 +68,7 @@ fun ItemDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .background(Color(0xFFF8F9FA)) // Fundo cinza claro
+                    .background(Color(0xFFF8F9FA))
                     .verticalScroll(rememberScrollState())
             ) {
                 // --- IMAGEM DE CAPA COM BADGE ---
@@ -70,7 +82,6 @@ fun ItemDetailScreen(
                         contentScale = ContentScale.Crop
                     )
 
-                    // Badge Encontrado/Perdido no topo da imagem
                     Surface(
                         color = if (item.status == ItemStatus.LOST) Color(0xFFE57373) else Color(0xFF0D0D12),
                         shape = RoundedCornerShape(8.dp),
@@ -89,13 +100,22 @@ fun ItemDetailScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // --- TÍTULO E CATEGORIA ---
+                    // --- TÍTULO E STATUS DE RESOLUÇÃO ---
                     Column {
-                        Text(
-                            text = item.title,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = item.title,
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (item.resolved) {
+                                Badge(containerColor = Color(0xFF4CAF50)) {
+                                    Text("Resolvido", color = Color.White, modifier = Modifier.padding(4.dp))
+                                }
+                            }
+                        }
+
                         Spacer(modifier = Modifier.height(8.dp))
                         Surface(
                             color = Color(0xFFF2F2F7),
@@ -118,7 +138,7 @@ fun ItemDetailScreen(
                         )
                     }
 
-                    // --- CARD: INFORMAÇÕES (Local, Data, User) ---
+                    // --- CARD: INFORMAÇÕES ---
                     InfoCard(title = "Informações") {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             InfoRow(Icons.Default.LocationOn, "Localização", item.locationName ?: "Não especificado")
@@ -131,37 +151,52 @@ fun ItemDetailScreen(
                         }
                     }
 
-                    // --- SEÇÃO: CONTACTO ---
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("Entrar em Contacto", fontWeight = FontWeight.Bold)
+                    // --- SEÇÃO DE ACÇÕES (CONTACTO OU MARCAR COMO RESOLVIDO) ---
+                    if (item.userId == viewModel.currentUserId) {
+                        // SE FOR O DONO: Botão para resolver
+                        if (!item.resolved) {
+                            Button(
+                                onClick = { viewModel.markAsResolved(item.id) },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                            ) {
+                                Icon(Icons.Default.CheckCircleOutline, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Marcar como Resolvido / Entregue")
+                            }
+                        }
+                    } else {
+                        // SE NÃO FOR O DONO: Botão de Contacto
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text("Entrar em Contacto", fontWeight = FontWeight.Bold)
 
-                        // Botão Iniciar Conversa (Preto)
-                        Button(
-                            onClick = { onContactClick(item.id) },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D0D12))
-                        ) {
-                            Icon(Icons.Default.ChatBubbleOutline, null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Iniciar Conversa")
+                            Button(
+                                onClick = { onContactClick(item.userId) },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D0D12))
+                            ) {
+                                Icon(Icons.Default.ChatBubbleOutline, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Iniciar Conversa")
+                            }
+
+                            // MENSAGEM IMPORTANTE
+                            Surface(
+                                color = Color(0xFFE3F2FD),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "Importante: Ao contactar o utilizador, esteja preparado para fornecer uma descrição detalhada do objeto para comprovar a propriedade.",
+                                    modifier = Modifier.padding(16.dp),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF1565C0)
+                                )
+                            }
                         }
                     }
-
-                    // --- MENSAGEM IMPORTANTE ---
-                    Surface(
-                        color = Color(0xFFE3F2FD),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "Importante: Ao contactar o utilizador, esteja preparado para fornecer uma descrição detalhada do objeto para comprovar que é o proprietário.",
-                            modifier = Modifier.padding(16.dp),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF1565C0)
-                        )
-                    }
-
                     Spacer(modifier = Modifier.height(32.dp))
                 }
             }
@@ -169,7 +204,6 @@ fun ItemDetailScreen(
     }
 }
 
-// Componente auxiliar para os Cards de Informação
 @Composable
 fun InfoCard(title: String, content: @Composable () -> Unit) {
     Card(
@@ -186,7 +220,6 @@ fun InfoCard(title: String, content: @Composable () -> Unit) {
     }
 }
 
-// Componente auxiliar para as linhas de ícone + texto
 @Composable
 fun InfoRow(icon: ImageVector, label: String, value: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {

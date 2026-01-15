@@ -33,9 +33,17 @@ import com.lostandfound.frontend_app.ui.viewmodel.CreateItemViewModel
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateItemScreen(viewModel: CreateItemViewModel, onItemCreated: () -> Unit, onBack: () -> Unit) {
+fun CreateItemScreen(
+    viewModel: CreateItemViewModel,
+    onItemCreated: () -> Unit,
+    onBack: () -> Unit
+) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+
+    // Título dinâmico dependendo se é criação ou edição
+    val screenTitle = if (viewModel.editingItemId == null) "Adicionar Objeto" else "Editar Objeto"
+    val buttonText = if (viewModel.editingItemId == null) "Publicar Anúncio" else "Guardar Alterações"
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -48,7 +56,7 @@ fun CreateItemScreen(viewModel: CreateItemViewModel, onItemCreated: () -> Unit, 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Adicionar Objeto", fontWeight = FontWeight.Bold) },
+                title = { Text(screenTitle, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
@@ -61,7 +69,7 @@ fun CreateItemScreen(viewModel: CreateItemViewModel, onItemCreated: () -> Unit, 
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFFF8F9FA)) // Fundo levemente cinza como na imagem
+                .background(Color(0xFFF8F9FA))
                 .verticalScroll(scrollState)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -77,7 +85,6 @@ fun CreateItemScreen(viewModel: CreateItemViewModel, onItemCreated: () -> Unit, 
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Row(modifier = Modifier.fillMaxWidth()) {
-                        // Botão ENCONTRADO
                         Button(
                             onClick = { viewModel.status = ItemStatus.FOUND },
                             modifier = Modifier.weight(1f).height(48.dp),
@@ -90,7 +97,6 @@ fun CreateItemScreen(viewModel: CreateItemViewModel, onItemCreated: () -> Unit, 
                         ) {
                             Text("Encontrado")
                         }
-                        // Botão PERDIDO
                         Button(
                             onClick = { viewModel.status = ItemStatus.LOST },
                             modifier = Modifier.weight(1f).height(48.dp),
@@ -128,14 +134,17 @@ fun CreateItemScreen(viewModel: CreateItemViewModel, onItemCreated: () -> Unit, 
                             .clickable { galleryLauncher.launch("image/*") },
                         contentAlignment = Alignment.Center
                     ) {
-                        if (viewModel.selectedImageUri == null) {
+                        // Lógica para mostrar: Foto Selecionada > Foto Existente > Placeholder
+                        val imageModel = viewModel.selectedImageUri ?: viewModel.currentImageUrl
+
+                        if (imageModel == null) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(40.dp), tint = Color.Gray)
+                                Icon(Icons.Default.PhotoCamera, null, modifier = Modifier.size(40.dp), tint = Color.Gray)
                                 Text("Tirar ou carregar foto", color = Color.Gray)
                             }
                         } else {
                             AsyncImage(
-                                model = viewModel.selectedImageUri,
+                                model = imageModel,
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)),
                                 contentScale = ContentScale.Crop
@@ -152,7 +161,6 @@ fun CreateItemScreen(viewModel: CreateItemViewModel, onItemCreated: () -> Unit, 
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // Título
                     Text("Título", fontWeight = FontWeight.Bold)
                     OutlinedTextField(
                         value = viewModel.title,
@@ -162,7 +170,6 @@ fun CreateItemScreen(viewModel: CreateItemViewModel, onItemCreated: () -> Unit, 
                         colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = Color(0xFFF2F2F7), focusedContainerColor = Color(0xFFF2F2F7), unfocusedBorderColor = Color.Transparent)
                     )
 
-                    // Categoria
                     Text("Categoria", fontWeight = FontWeight.Bold)
                     OutlinedTextField(
                         value = viewModel.categoryName,
@@ -173,13 +180,12 @@ fun CreateItemScreen(viewModel: CreateItemViewModel, onItemCreated: () -> Unit, 
                         colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = Color(0xFFF2F2F7), focusedContainerColor = Color(0xFFF2F2F7), unfocusedBorderColor = Color.Transparent)
                     )
 
-                    // Descrição
                     Text("Descrição", fontWeight = FontWeight.Bold)
                     OutlinedTextField(
                         value = viewModel.description,
                         onValueChange = { viewModel.description = it },
                         modifier = Modifier.fillMaxWidth().height(120.dp),
-                        placeholder = { Text("Descreva o objeto com o máximo de detalhes possível...") },
+                        placeholder = { Text("Descreva o objeto...") },
                         colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = Color(0xFFF2F2F7), focusedContainerColor = Color(0xFFF2F2F7), unfocusedBorderColor = Color.Transparent)
                     )
                 }
@@ -195,35 +201,33 @@ fun CreateItemScreen(viewModel: CreateItemViewModel, onItemCreated: () -> Unit, 
                     Text("Localização", fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(12.dp))
                     OutlinedTextField(
-                        value = viewModel.locationName, // Certifique-se que esta var existe no ViewModel
+                        value = viewModel.locationName,
                         onValueChange = { viewModel.locationName = it },
                         modifier = Modifier.fillMaxWidth(),
                         leadingIcon = { Icon(Icons.Default.LocationOn, null, tint = Color.Gray) },
                         placeholder = { Text("Ex: Campus A - Biblioteca") },
                         colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = Color(0xFFF2F2F7), focusedContainerColor = Color(0xFFF2F2F7), unfocusedBorderColor = Color.Transparent)
                     )
-                    Text(
-                        "Indique onde o objeto foi encontrado",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
                 }
             }
 
-            // Botão Publicar
+            // CORREÇÃO: Usar onSaveItemClick em vez de onCreateItemClick
             Button(
-                onClick = { viewModel.onCreateItemClick(context) },
+                onClick = { viewModel.onSaveItemClick(context) },
                 modifier = Modifier.fillMaxWidth().height(56.dp).padding(bottom = 8.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8E8E93)), // Cor do botão da imagem
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D0D12)), // Mudei para preto para destacar
                 enabled = !viewModel.isLoading
             ) {
                 if (viewModel.isLoading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Publicar Anúncio", style = MaterialTheme.typography.titleMedium)
+                    Text(buttonText, style = MaterialTheme.typography.titleMedium)
                 }
+            }
+
+            if (viewModel.errorMessage != null) {
+                Text(viewModel.errorMessage!!, color = Color.Red, modifier = Modifier.padding(top = 8.dp))
             }
         }
     }

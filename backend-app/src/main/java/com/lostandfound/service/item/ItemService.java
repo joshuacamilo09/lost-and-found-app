@@ -25,4 +25,6 @@ public interface ItemService {
     void deleteItem(Long itemId);
 
     ItemResponseDTO createItem(ItemRequestDTO dto, MultipartFile image);
+
+    ItemResponseDTO updateItem(Long id, ItemRequestDTO dto, MultipartFile image);
 }

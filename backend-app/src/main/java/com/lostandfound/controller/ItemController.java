@@ -72,6 +72,17 @@ public ResponseEntity<ItemResponseDTO> createItem(
         return ResponseEntity.ok(itemService.markAsResolved(id));
     }
 
+    
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ItemResponseDTO> updateItem(
+            @PathVariable Long id,
+            @RequestPart("item") ItemRequestDTO dto, 
+            @RequestPart(value = "image", required = false) MultipartFile image) {
+        
+        // Certifique-se que o seu ItemService tem o método updateItem(id, dto, image)
+        return ResponseEntity.ok(itemService.updateItem(id, dto, image));
+    }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteItem(
