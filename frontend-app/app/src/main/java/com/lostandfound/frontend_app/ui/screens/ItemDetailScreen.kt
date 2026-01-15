@@ -47,11 +47,7 @@ fun ItemDetailScreen(
                         IconButton(onClick = { onEditClick(itemId) }) {
                             Icon(Icons.Default.Edit, contentDescription = "Editar")
                         }
-                        IconButton(onClick = {
-                            viewModel.deleteItem(itemId) { onBack() }
-                        }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red)
-                        }
+
                     }
                 }
             )
