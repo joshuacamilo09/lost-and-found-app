@@ -1,6 +1,7 @@
 package com.lostandfound.security;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -13,11 +14,16 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    // Geramos a chave uma única vez para toda a aplicação
-    private final SecretKey jwtSecret = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    // Chave lida da configuração (JWT_SECRET), para que os tokens continuem válidos
+    // entre reinícios e entre várias instâncias da aplicação.
+    private final SecretKey jwtSecret;
+    private final long jwtExpirationMs;
 
-    @Value("${app.jwt.expiration}")
-    private long jwtExpirationMs;
+    public JwtTokenProvider(@Value("${app.jwt.secret}") String secret,
+                            @Value("${app.jwt.expiration}") long jwtExpirationMs) {
+        this.jwtSecret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+        this.jwtExpirationMs = jwtExpirationMs;
+    }
 
     // Gerar token JWT
     public String generateToken(Authentication authentication) {
@@ -30,7 +36,7 @@ public class JwtTokenProvider {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(jwtSecret, SignatureAlgorithm.HS512) // Usa a chave diretamente
+                .signWith(jwtSecret) // algoritmo HMAC escolhido pelo tamanho da chave
                 .compact();
     }
 
@@ -43,7 +49,7 @@ public class JwtTokenProvider {
                 .setSubject(username)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(jwtSecret, SignatureAlgorithm.HS512) // Usa a chave diretamente
+                .signWith(jwtSecret) // algoritmo HMAC escolhido pelo tamanho da chave
                 .compact();
     }
 

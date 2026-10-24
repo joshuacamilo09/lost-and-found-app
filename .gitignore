@@ -1,0 +1,11 @@
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.iml
+~$*
+
+# Secrets
+.env
+.env.*
+!.env.example

@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: lostandfound-db
+    environment:
+      POSTGRES_DB: lostandfound
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    ports:
+      - "5432:5432"
+    volumes:
+      - lostandfound-data:/var/lib/postgresql/data
+
+volumes:
+  lostandfound-data:

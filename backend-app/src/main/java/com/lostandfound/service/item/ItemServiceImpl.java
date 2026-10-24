@@ -32,15 +32,18 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final ConversationRepository conversationRepository;
+    private final Cloudinary cloudinary; // configurado em CloudinaryConfig a partir de variáveis de ambiente
 
     public ItemServiceImpl(ItemRepository itemRepository,
                            UserRepository userRepository,
                            CategoryRepository categoryRepository,
-                           ConversationRepository conversationRepository) {
+                           ConversationRepository conversationRepository,
+                           Cloudinary cloudinary) {
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.conversationRepository = conversationRepository;
+        this.cloudinary = cloudinary;
     }
 
 
@@ -68,14 +71,8 @@ public class ItemServiceImpl implements ItemService {
         // Lógica do Cloudinary
         if (image != null && !image.isEmpty()) {
             try {
-                Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
-                    "cloud_name", "dgvgm30cm",
-                    "api_key", "398823687392838",
-                    "api_secret", "xBWDA4gxTggtjV8S3iNzXbrol1g"
-                ));
-                
                 Map uploadResult = cloudinary.uploader().upload(image.getBytes(), ObjectUtils.emptyMap());
-                item.setImageUrl(uploadResult.get("url").toString());
+                item.setImageUrl(uploadResult.get("secure_url").toString());
             } catch (Exception e) {
                 throw new RuntimeException("Erro ao fazer upload da imagem: " + e.getMessage());
             }
@@ -212,14 +209,8 @@ public ItemResponseDTO updateItem(Long id, ItemRequestDTO dto, MultipartFile ima
 
    if (image != null && !image.isEmpty()) {
         try {
-            // FIX: Usar as mesmas credenciais do createItem
-            Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
-                "cloud_name", "dgvgm30cm",
-                "api_key", "398823687392838",
-                "api_secret", "xBWDA4gxTggtjV8S3iNzXbrol1g"
-            ));
             Map uploadResult = cloudinary.uploader().upload(image.getBytes(), ObjectUtils.emptyMap());
-            item.setImageUrl(uploadResult.get("url").toString());
+            item.setImageUrl(uploadResult.get("secure_url").toString());
         } catch (Exception e) {
             throw new RuntimeException("Erro ao carregar nova imagem: " + e.getMessage());
         }
